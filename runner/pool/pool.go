@@ -20,6 +20,7 @@ import (
 	"log/slog"
 	"math"
 	"net/http"
+	"os"
 	"strconv"
 	"strings"
 	"sync"
@@ -1711,6 +1712,17 @@ func (r *basePoolManager) DeleteRunner(runner params.Instance, forceRemove bool)
 	return nil
 }
 
+func (r *basePoolManager) getMinimumJobAge() time.Duration {
+	value, ok := os.LookupEnv("MINIMUM_JOB_AGE")
+	delay := 30
+	if ok {
+		if i, err := strconv.Atoi(value); err == nil {
+			delay = i
+		}
+	}
+	return time.Duration(delay)
+}
+
 // consumeQueuedJobs will pull all the known jobs from the database and attempt to create a new
 // runner in one of the pools it manages, if it matches the requested labels.
 // This is a best effort attempt to consume queued jobs. We do not have any real way to know which
@@ -1745,6 +1757,9 @@ func (r *basePoolManager) consumeQueuedJobs() error {
 	slog.DebugContext(
 		r.ctx, "found queued jobs",
 		"job_count", len(queued))
+
+	jobTimeout := r.getMinimumJobAge()
+
 	for _, job := range queued {
 		if job.LockedBy != uuid.Nil && job.LockedBy.String() != r.ID() {
 			// Job was handled by us or another entity.
@@ -1755,7 +1770,7 @@ func (r *basePoolManager) consumeQueuedJobs() error {
 			continue
 		}
 
-		if time.Since(job.UpdatedAt) < time.Second*30 {
+		if time.Since(job.UpdatedAt) < time.Second * jobTimeout {
 			// give the idle runners a chance to pick up the job.
 			slog.DebugContext(
 				r.ctx, "job was updated less than 30 seconds ago. Skipping",
