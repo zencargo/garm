@@ -1720,7 +1720,7 @@ func (r *basePoolManager) getMinimumJobAge() time.Duration {
 			delay = i
 		}
 	}
-	return time.Duration(delay)
+	return time.Duration(delay) * time.Second
 }
 
 // consumeQueuedJobs will pull all the known jobs from the database and attempt to create a new
@@ -1770,10 +1770,10 @@ func (r *basePoolManager) consumeQueuedJobs() error {
 			continue
 		}
 
-		if time.Since(job.UpdatedAt) < time.Second * jobTimeout {
+		if time.Since(job.UpdatedAt) < jobTimeout {
 			// give the idle runners a chance to pick up the job.
 			slog.DebugContext(
-				r.ctx, "job was updated less than 30 seconds ago. Skipping",
+				r.ctx, fmt.Sprintf("job was updated less than %s ago. Skipping", jobTimeout),
 				"job_id", job.ID)
 			continue
 		}
