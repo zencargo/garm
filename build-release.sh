@@ -6,7 +6,7 @@ set -o pipefail
 GH_REF=$(git rev-parse HEAD)
 PUSH_TO_PROJECT="europe-west4-docker.pkg.dev/prj-zen-c-artifact-reg-5bhv/garm"
 
-VERSION=$(git describe --tags --match='v[0-9]*' --always)
+VERSION=$(git describe --tags --match='v[0-9]*' --always --abbrev=0)-dev
 AZURE_REF=v0.1.0
 OPENSTACK_REF=v0.1.0
 LXD_REF=v0.1.0
