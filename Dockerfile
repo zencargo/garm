@@ -8,7 +8,7 @@ RUN git config --global --add safe.directory /build
 
 ADD . /build/garm
 RUN cd /build/garm && git checkout ${GARM_REF}
-RUN git clone --depth 1 --branch v0.1.0 https://github.com/cloudbase/garm-provider-gcp /build/garm-provider-gcp
+RUN git clone --depth 1 --branch v0.1.2 https://github.com/cloudbase/garm-provider-gcp /build/garm-provider-gcp
 
 RUN cd /build/garm && go build -o /bin/garm \
     -tags osusergo,netgo,sqlite_omit_load_extension \
